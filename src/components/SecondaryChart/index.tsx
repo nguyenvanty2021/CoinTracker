@@ -10,6 +10,7 @@ import { max, min, extent } from "d3-array";
 import { theme } from "styles";
 import { MarketContext } from "store/MarketProvider";
 import { SecondaryChartProps } from "./interfaces";
+import { SC } from "./styled";
 
 const SecondaryChart: React.FC<SecondaryChartProps> = ({
   data,
@@ -73,7 +74,7 @@ const SecondaryChart: React.FC<SecondaryChartProps> = ({
   };
 
   return (
-    <div style={{ position: "relative" }}>
+    <SC.DivComp>
       <svg width={width} height={height}>
         <AreaChart
           hideLeftAxis
@@ -115,7 +116,7 @@ const SecondaryChart: React.FC<SecondaryChartProps> = ({
           />
         </AreaChart>
       </svg>
-    </div>
+    </SC.DivComp>
   );
 };
 

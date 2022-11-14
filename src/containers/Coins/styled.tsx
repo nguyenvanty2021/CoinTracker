@@ -1,10 +1,12 @@
+import { Grid } from "@material-ui/core";
 import styled from "styled-components";
-
 const Table = styled.table`
   border-collapse: collapse;
   min-width: 1000px;
 `;
-
+const GridComp = styled(Grid)`
+  overflow-x: auto;
+`;
 const TableHeaderRow = styled.tr`
   border: 0px;
   border-top: 1px solid ${(p) => p.theme.colors.secondary};
@@ -57,6 +59,7 @@ const PaginationWrapper = styled.div`
 
 export const SC = {
   CoinsContainer,
+  GridComp,
   CoinsName,
   PaginationWrapper,
   Table,

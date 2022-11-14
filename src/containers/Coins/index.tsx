@@ -149,7 +149,7 @@ const Coins = () => {
   return (
     <SC.CoinsContainer>
       <Grid container justify="center">
-        <Grid item style={{ overflowX: "auto" }} xs={12} md={10}>
+        <SC.GridComp item xs={12} md={10}>
           {loading ? (
             <Skeleton variant="rect" height="100vh" width="100%" />
           ) : (
@@ -173,7 +173,7 @@ const Coins = () => {
               </SC.PaginationWrapper>
             </>
           )}
-        </Grid>
+        </SC.GridComp>
       </Grid>
     </SC.CoinsContainer>
   );

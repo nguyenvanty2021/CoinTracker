@@ -5,6 +5,7 @@ import LineChart from "components/LineChart";
 import { DataProps } from "interfaces/DataProps";
 import { max, min, extent } from "d3-array";
 import { CoinChartProps } from "./interfaces";
+import { SC } from "./styled";
 
 const CoinChart: React.FC<CoinChartProps> = ({ id, color, height, width }) => {
   const [{ data, loading }, fetch] = useAxios(
@@ -58,7 +59,7 @@ const CoinChart: React.FC<CoinChartProps> = ({ id, color, height, width }) => {
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div style={{ position: "relative" }}>
+    <SC.DivComp>
       <svg height={height} width={width}>
         <LineChart
           hideBottomAxis
@@ -72,7 +73,7 @@ const CoinChart: React.FC<CoinChartProps> = ({ id, color, height, width }) => {
           stroke={color}
         />
       </svg>
-    </div>
+    </SC.DivComp>
   );
 };
 

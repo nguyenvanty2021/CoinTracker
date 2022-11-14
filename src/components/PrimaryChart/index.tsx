@@ -14,6 +14,7 @@ import { PrimaryChartProps } from "./interfaces";
 import { DataProps } from "interfaces/DataProps";
 import LineChart from "components/LineChart";
 import { theme } from "styles";
+import { SC } from "./styled";
 
 // accessors
 const getDate = (d: DataProps) => new Date(d.date);
@@ -88,7 +89,7 @@ const PrimaryChart: React.FC<PrimaryChartProps> = ({
   );
 
   return (
-    <div style={{ position: "relative", margin: "0 0 1rem" }}>
+    <SC.DivComp>
       <svg width={width} height={height}>
         <LineChart
           data={data}
@@ -165,18 +166,18 @@ const PrimaryChart: React.FC<PrimaryChartProps> = ({
               color: "white",
             }}
           >
-            <ul style={{ padding: "0", margin: "0", listStyle: "none" }}>
-              <li style={{ paddingBottom: "0.25rem" }}>
+            <SC.DivItem>
+              <SC.TabItem>
                 <b>{format(getDate(tooltipData), "PPpp")}</b>
-              </li>
+              </SC.TabItem>
               <li>
                 Price: <b>{`${getFormatValue(tooltipData)}`}</b>
               </li>
-            </ul>
+            </SC.DivItem>
           </TooltipWithBounds>
         </div>
       )}
-    </div>
+    </SC.DivComp>
   );
 };
 

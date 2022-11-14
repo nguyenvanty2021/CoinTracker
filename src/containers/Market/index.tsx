@@ -10,18 +10,22 @@ import { DataProps } from "interfaces/DataProps";
 import useWindowDimensions from "hooks/useWindowDimensions";
 import { useQueryParams, StringParam } from "use-query-params";
 import { MarketContext } from "store/MarketProvider";
-import { Select } from "@material-ui/core";
 import { MenuItem } from "@material-ui/core";
 import { InputLabel } from "@material-ui/core";
 import Table from "@material-ui/core/Table";
 import { makeStyles } from "@material-ui/core/styles";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
+interface ListProps<T> {
+  id: number;
+  key: T;
+  value: T;
+}
 const useStyles = makeStyles({
   table: {
     minWidth: 650,
@@ -31,11 +35,49 @@ function createData(date: string, price: number) {
   return { date, price };
 }
 const Market = () => {
+  const listDisplayType: ListProps<string>[] = [
+    {
+      id: 1,
+      key: "Chart",
+      value: "chart",
+    },
+    {
+      id: 2,
+      key: "List",
+      value: "list",
+    },
+  ];
+  const listCurrencyChange: ListProps<string>[] = [
+    {
+      id: 1,
+      key: "USD",
+      value: "usd",
+    },
+    {
+      id: 2,
+      key: "CHF",
+      value: "chf",
+    },
+    {
+      id: 3,
+      key: "AUD",
+      value: "aud",
+    },
+    {
+      id: 4,
+      key: "BRL",
+      value: "brl",
+    },
+    {
+      id: 5,
+      key: "CAD",
+      value: "cad",
+    },
+  ];
   const classes = useStyles();
   const {
     filteredDataState: { filteredData },
   } = React.useContext(MarketContext);
-
   const [queryParams] = useQueryParams({
     id: StringParam,
     name: StringParam,
@@ -47,13 +89,14 @@ const Market = () => {
     }[]
   >([]);
   const [displayType, setDisplayType] = React.useState<string>("chart");
+  const [currencyChange, setCurrencyChange] = React.useState<string>("usd");
   const [timeFilter, setTimeFilter] = React.useState<string>("1");
   const [isErrorMessage, setIsErrorMessage] = React.useState<string>("");
   const [boxWidth, setBoxWidth] = React.useState<number>(0);
   const { height } = useWindowDimensions();
   const [{ data, loading, error }, fetch] = useAxios(
     {
-      url: `https://api.coingecko.com/api/v3/coins/${queryParams?.id}/market_chart?vs_currency=usd&days=${timeFilter}`,
+      url: `https://api.coingecko.com/api/v3/coins/${queryParams?.id}/market_chart?vs_currency=${currencyChange}&days=${timeFilter}`,
       method: "GET",
     },
     { manual: true }
@@ -126,24 +169,56 @@ const Market = () => {
     <>
       <Grid container justify="center">
         <Grid ref={gridItemRef} item xs={12} md={10} lg={8}>
-          <InputLabel id="demo-simple-select-label">
-            Select display type
-          </InputLabel>
-          <Select
-            style={{ width: "10rem" }}
-            labelId="demo-simple-select-label"
-            id="demo-simple-select-outlined"
-            value={displayType}
-            onChange={(e: any) => setDisplayType(e.target.value)}
-          >
-            <MenuItem value="chart">Chart</MenuItem>
-            <MenuItem value="list">List</MenuItem>
-          </Select>
+          <SC.MarketHeader>
+            <SC.Title>
+              {" "}
+              <InputLabel id="demo-simple-select-label">
+                Select display type
+              </InputLabel>
+              <SC.SelectComp
+                labelId="demo-simple-select-label"
+                id="demo-simple-select-outlined"
+                value={displayType}
+                onChange={(e: any) => setDisplayType(e.target.value)}
+              >
+                {listDisplayType?.length > 0 &&
+                  listDisplayType.map((values) => {
+                    return (
+                      <MenuItem value={values.value} key={values.id}>
+                        {values.key}
+                      </MenuItem>
+                    );
+                  })}
+              </SC.SelectComp>
+            </SC.Title>
+            <SC.CurrencyChange>
+              <InputLabel id="demo-simple-select-label">
+                Currency you want to change to
+              </InputLabel>
+              <SC.SelectComp
+                labelId="demo-simple-select-label"
+                id="demo-simple-select-outlined"
+                value={currencyChange}
+                onChange={(e: any) => setCurrencyChange(e.target.value)}
+              >
+                {listCurrencyChange?.length > 0 &&
+                  listCurrencyChange.map((values) => {
+                    return (
+                      <MenuItem value={values.value} key={values.id}>
+                        {values.key}
+                      </MenuItem>
+                    );
+                  })}
+              </SC.SelectComp>
+            </SC.CurrencyChange>
+          </SC.MarketHeader>
         </Grid>
         {displayType === "chart" ? (
           <Grid ref={gridItemRef} item xs={12} md={10} lg={8}>
             <SC.MarketHeader>
-              <SC.Title>{queryParams?.name}</SC.Title>
+              <SC.Title>{`${
+                queryParams?.name
+              }/${currencyChange.toUpperCase()}`}</SC.Title>
               <TimeFilterButtons
                 value={timeFilter}
                 onChange={(v) => setTimeFilter(v || "")}
@@ -183,14 +258,7 @@ const Market = () => {
             ) : null}
           </Grid>
         ) : (
-          <Grid
-            ref={gridItemRef}
-            style={{ marginTop: "1.25rem" }}
-            item
-            xs={12}
-            md={10}
-            lg={8}
-          >
+          <SC.GridComp ref={gridItemRef} item xs={12} md={10} lg={8}>
             <SC.MarketHeader>
               <SC.Title>{queryParams?.name}</SC.Title>
               <TimeFilterButtons
@@ -198,32 +266,34 @@ const Market = () => {
                 onChange={(v) => setTimeFilter(v || "")}
               />
             </SC.MarketHeader>
-            <TableContainer style={{ height: "70vh" }} component={Paper}>
-              <Table className={classes.table} aria-label="simple table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="left">Date</TableCell>
-                    <TableCell align="left">Price</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {mappedDataList?.length > 0
-                    ? mappedDataList.map((row) => (
-                        <TableRow key={row.date}>
-                          <TableCell align="left">{row.date}</TableCell>
-                          <TableCell align="left">{row.price}</TableCell>
-                        </TableRow>
-                      ))
-                    : rows.map((row) => (
-                        <TableRow key={row.date}>
-                          <TableCell align="left">{row.date}</TableCell>
-                          <TableCell align="left">{row.price}</TableCell>
-                        </TableRow>
-                      ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Grid>
+            {mappedDataList?.length > 0 && rows?.length > 0 && (
+              <TableContainer style={{ height: "70vh" }} component={Paper}>
+                <Table className={classes.table} aria-label="simple table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell align="left">Date</TableCell>
+                      <TableCell align="left">Price</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {mappedDataList?.length > 0
+                      ? mappedDataList.map((row) => (
+                          <TableRow key={row.date}>
+                            <TableCell align="left">{row.date}</TableCell>
+                            <TableCell align="left">{row.price}</TableCell>
+                          </TableRow>
+                        ))
+                      : rows.map((row) => (
+                          <TableRow key={row.date}>
+                            <TableCell align="left">{row.date}</TableCell>
+                            <TableCell align="left">{row.price}</TableCell>
+                          </TableRow>
+                        ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </SC.GridComp>
         )}
 
         <Snackbar open={!!isErrorMessage} onClose={handleError}>
