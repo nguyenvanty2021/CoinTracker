@@ -21,6 +21,7 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
+import { getQueryParam, updateUrlGallery } from "utils/query";
 interface ListProps<T> {
   id: number;
   key: T;
@@ -88,9 +89,16 @@ const Market = () => {
       price: number;
     }[]
   >([]);
-  const [displayType, setDisplayType] = React.useState<string>("chart");
-  const [currencyChange, setCurrencyChange] = React.useState<string>("usd");
-  const [timeFilter, setTimeFilter] = React.useState<string>("1");
+  const queryParam = getQueryParam<any>();
+  const [displayType, setDisplayType] = React.useState<string>(
+    queryParam["displayType"]
+  );
+  const [currencyChange, setCurrencyChange] = React.useState<string>(
+    queryParam["currency"]
+  );
+  const [timeFilter, setTimeFilter] = React.useState<string>(
+    queryParam["time"]
+  );
   const [isErrorMessage, setIsErrorMessage] = React.useState<string>("");
   const [boxWidth, setBoxWidth] = React.useState<number>(0);
   const { height } = useWindowDimensions();
@@ -153,7 +161,6 @@ const Market = () => {
   ) => {
     setIsErrorMessage("");
   };
-
   useEffect(() => {
     const listTemp = [...rows];
     filteredData.forEach((values) => {
@@ -164,14 +171,12 @@ const Market = () => {
     setRows([...listTemp]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredData]);
-
   return (
     <>
       <Grid container justify="center">
         <Grid ref={gridItemRef} item xs={12} md={10} lg={8}>
           <SC.MarketHeader>
             <SC.Title>
-              {" "}
               <InputLabel id="demo-simple-select-label">
                 Select display type
               </InputLabel>
@@ -179,7 +184,10 @@ const Market = () => {
                 labelId="demo-simple-select-label"
                 id="demo-simple-select-outlined"
                 value={displayType}
-                onChange={(e: any) => setDisplayType(e.target.value)}
+                onChange={(e: any) => {
+                  setDisplayType(e.target.value);
+                  updateUrlGallery("displayType", e.target.value);
+                }}
               >
                 {listDisplayType?.length > 0 &&
                   listDisplayType.map((values) => {
@@ -199,7 +207,10 @@ const Market = () => {
                 labelId="demo-simple-select-label"
                 id="demo-simple-select-outlined"
                 value={currencyChange}
-                onChange={(e: any) => setCurrencyChange(e.target.value)}
+                onChange={(e: any) => {
+                  setCurrencyChange(e.target.value);
+                  updateUrlGallery("currency", e.target.value);
+                }}
               >
                 {listCurrencyChange?.length > 0 &&
                   listCurrencyChange.map((values) => {
@@ -221,7 +232,10 @@ const Market = () => {
               }/${currencyChange.toUpperCase()}`}</SC.Title>
               <TimeFilterButtons
                 value={timeFilter}
-                onChange={(v) => setTimeFilter(v || "")}
+                onChange={(v) => {
+                  setTimeFilter(v || "");
+                  updateUrlGallery("time", v || "");
+                }}
               />
             </SC.MarketHeader>
             {loading ? (
@@ -260,39 +274,42 @@ const Market = () => {
         ) : (
           <SC.GridComp ref={gridItemRef} item xs={12} md={10} lg={8}>
             <SC.MarketHeader>
-              <SC.Title>{queryParams?.name}</SC.Title>
+              <SC.Title>{`${
+                queryParams?.name
+              }/${currencyChange.toUpperCase()}`}</SC.Title>
               <TimeFilterButtons
                 value={timeFilter}
-                onChange={(v) => setTimeFilter(v || "")}
+                onChange={(v) => {
+                  setTimeFilter(v || "");
+                  updateUrlGallery("time", v || "");
+                }}
               />
             </SC.MarketHeader>
-            {mappedDataList?.length > 0 && rows?.length > 0 && (
-              <TableContainer style={{ height: "70vh" }} component={Paper}>
-                <Table className={classes.table} aria-label="simple table">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell align="left">Date</TableCell>
-                      <TableCell align="left">Price</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {mappedDataList?.length > 0
-                      ? mappedDataList.map((row) => (
-                          <TableRow key={row.date}>
-                            <TableCell align="left">{row.date}</TableCell>
-                            <TableCell align="left">{row.price}</TableCell>
-                          </TableRow>
-                        ))
-                      : rows.map((row) => (
-                          <TableRow key={row.date}>
-                            <TableCell align="left">{row.date}</TableCell>
-                            <TableCell align="left">{row.price}</TableCell>
-                          </TableRow>
-                        ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
+            <TableContainer style={{ height: "70vh" }} component={Paper}>
+              <Table className={classes.table} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="left">Date</TableCell>
+                    <TableCell align="left">Price</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {mappedDataList?.length > 0
+                    ? mappedDataList.map((row) => (
+                        <TableRow key={row.date}>
+                          <TableCell align="left">{row.date}</TableCell>
+                          <TableCell align="left">{row.price}</TableCell>
+                        </TableRow>
+                      ))
+                    : rows.map((row) => (
+                        <TableRow key={row.date}>
+                          <TableCell align="left">{row.date}</TableCell>
+                          <TableCell align="left">{row.price}</TableCell>
+                        </TableRow>
+                      ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </SC.GridComp>
         )}
 

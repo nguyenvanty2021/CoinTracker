@@ -84,7 +84,7 @@ const Coins = () => {
                       onClick={() => {
                         history.push({
                           pathname: `/market`,
-                          search: `?id=${ele.id}&name=${ele.name}`,
+                          search: `?id=${ele.id}&name=${ele.name}&displayType=chart&currency=usd&time=1`,
                         });
                       }}
                     >
