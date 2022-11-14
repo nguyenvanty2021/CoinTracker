@@ -109,7 +109,6 @@ const Market = () => {
     },
     { manual: true }
   );
-
   const gridItemRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {

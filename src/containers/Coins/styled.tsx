@@ -44,6 +44,7 @@ const CoinsContainer = styled.div`
 `;
 
 const CoinsName = styled.b`
+  color: blue;
   &:hover {
     cursor: pointer;
     text-decoration: underline;
