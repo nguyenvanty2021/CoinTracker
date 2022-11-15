@@ -29,7 +29,7 @@ const Coins = () => {
   const listWatched: {
     id: string;
     watched: boolean;
-  }[] = local && JSON.parse(local);
+  }[] = local ? JSON.parse(local) : [];
   const [queryParams, setQueryParams] = useQueryParams({
     per_page: NumberParam,
     page: NumberParam,
@@ -46,7 +46,8 @@ const Coins = () => {
       per_page: queryParams?.per_page || INITIAL_QUERY_PARAMS.per_page,
       page: queryParams?.page || INITIAL_QUERY_PARAMS.page,
     });
-  }, [queryParams?.page, queryParams?.per_page, setQueryParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const TableHeader = () => {
     return (
       <thead>
@@ -68,6 +69,7 @@ const Coins = () => {
       <tbody>
         {data?.length
           ? data.map((ele) => {
+              console.log(ele);
               return (
                 <SC.TableBodyRow key={ele.id}>
                   <SC.TableData>{ele.market_cap_rank}</SC.TableData>
@@ -83,13 +85,13 @@ const Coins = () => {
                     <SC.CoinsName
                       onClick={() => {
                         const index = listWatched.findIndex(
-                          (el) => el.id === ele.id
+                          (el) => el?.id === ele?.id
                         );
                         history.push({
-                          pathname: `/market`,
-                          search: `?currency=usd&displayType=chart&id=${
+                          pathname: `/coins/${ele.symbol}`,
+                          search: `?currency=eth&displayType=chart&id=${
                             ele.id
-                          }&name=${ele.name}&time=1&watched=${
+                          }&range=1D&watched=${
                             index > -1 ? listWatched[index].watched : "false"
                           }`,
                         });

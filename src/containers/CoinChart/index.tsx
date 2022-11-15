@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import useAxios from "axios-hooks";
 import { scaleLinear, scaleTime } from "@visx/scale";
 import LineChart from "components/LineChart";
@@ -77,4 +77,4 @@ const CoinChart: React.FC<CoinChartProps> = ({ id, color, height, width }) => {
   );
 };
 
-export default CoinChart;
+export default memo(CoinChart);

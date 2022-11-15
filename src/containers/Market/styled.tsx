@@ -12,7 +12,7 @@ const ImageComp = styled.img`
   cursor: pointer;
   height: 25px;
   position: relative;
-  z-index: 10000;
+  z-index: 1000;
   object-fit: contain;
 `;
 const Title = styled.h2`

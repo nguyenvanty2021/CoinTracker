@@ -4,7 +4,7 @@ import { Skeleton, Alert } from "@material-ui/lab";
 import useAxios from "axios-hooks";
 import PrimaryChart from "components/PrimaryChart";
 import SecondaryChart from "components/SecondaryChart";
-import TimeFilterButtons from "components/TimeFilterButtons";
+import TimeFilterButtons, { TimePeriod } from "components/TimeFilterButtons";
 import { SC } from "./styled";
 import { DataProps } from "interfaces/DataProps";
 import useWindowDimensions from "hooks/useWindowDimensions";
@@ -24,6 +24,9 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import { getQueryParam, updateUrlGallery } from "utils/query";
+import coinApi from "api/coinApi";
+import { Status } from "enums/TimeFilters";
+import { useHistory } from "react-router-dom";
 interface ListProps<T> {
   id: number;
   key: T;
@@ -43,11 +46,12 @@ const HeartComponent = ({
   setStatusHeart: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   const queryParam = getQueryParam<any>();
+  const status = statusHeart === "true" ? "false" : "true";
   return (
     <SC.ImageComp
       onClick={() => {
-        updateUrlGallery("watched", statusHeart === "true" ? "false" : "true");
-        setStatusHeart(statusHeart === "true" ? "false" : "true");
+        updateUrlGallery("watched", status);
+        setStatusHeart(status);
         const index = listWatched.findIndex((el) => el.id === queryParam["id"]);
         if (index > -1) {
           listWatched[index].watched = statusHeart === "true" ? false : true;
@@ -80,40 +84,12 @@ const Market = () => {
       value: "list",
     },
   ];
-  const listCurrencyChange: ListProps<string>[] = [
-    {
-      id: 1,
-      key: "USD",
-      value: "usd",
-    },
-    {
-      id: 2,
-      key: "CHF",
-      value: "chf",
-    },
-    {
-      id: 3,
-      key: "AUD",
-      value: "aud",
-    },
-    {
-      id: 4,
-      key: "BRL",
-      value: "brl",
-    },
-    {
-      id: 5,
-      key: "CAD",
-      value: "cad",
-    },
-  ];
   const classes = useStyles();
   const {
     filteredDataState: { filteredData },
   } = useContext(MarketContext);
   const [queryParams] = useQueryParams({
     id: StringParam,
-    name: StringParam,
   });
   const [rows, setRows] = useState<
     {
@@ -121,6 +97,9 @@ const Market = () => {
       price: number;
     }[]
   >([]);
+  const history = useHistory();
+  const { pathname } = history.location;
+  const coinFrom = pathname.split("/")[pathname.split("/").length - 1];
   const queryParam = getQueryParam<any>();
   const [displayType, setDisplayType] = useState<string>(
     queryParam["displayType"]
@@ -128,9 +107,10 @@ const Market = () => {
   const [currencyChange, setCurrencyChange] = useState<string>(
     queryParam["currency"]
   );
-  const [timeFilter, setTimeFilter] = useState<string>(queryParam["time"]);
+  const [timeFilter, setTimeFilter] = useState<string>(queryParam["range"]);
   const [isErrorMessage, setIsErrorMessage] = useState<string>("");
   const [boxWidth, setBoxWidth] = useState<number>(0);
+  const [listCurrentcy, setListCurrency] = useState<string[]>([]);
   const { height } = useWindowDimensions();
   const [statusHeart, setStatusHeart] = useState<string>("false");
   const local: any = localStorage?.getItem("listWatched");
@@ -140,7 +120,7 @@ const Market = () => {
   }[] = local && JSON.parse(local);
   const [{ data, loading, error }, fetch] = useAxios(
     {
-      url: `https://api.coingecko.com/api/v3/coins/${queryParams?.id}/market_chart?vs_currency=${currencyChange}&days=${timeFilter}`,
+      url: `https://api.coingecko.com/api/v3/coins/${queryParams?.id}/market_chart?vs_currency=${currencyChange}&days=${TimePeriod[timeFilter]}`,
       method: "GET",
     },
     { manual: true }
@@ -162,11 +142,21 @@ const Market = () => {
       : [];
   }, [data]);
   const handleError = () => setIsErrorMessage("");
+  const handleGetAllCurrency = async () => {
+    try {
+      const res = await coinApi.getAllMoney();
+      if (res.status === Status.SUCCESS) {
+        setListCurrency(res?.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
   useEffect(() => {
-    if (queryParams.id && queryParams.name) {
+    if (queryParams.id && coinFrom) {
       fetch();
     }
-  }, [fetch, queryParams, queryParams.id, queryParams.name]);
+  }, [fetch, queryParams, queryParams.id, coinFrom]);
   useEffect(() => {
     if (error) {
       setIsErrorMessage(error.message);
@@ -218,6 +208,9 @@ const Market = () => {
     setStatusHeart(queryParam["watched"]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => {
+    handleGetAllCurrency();
+  }, []);
   return (
     <>
       <Grid container justify="center">
@@ -249,7 +242,7 @@ const Market = () => {
             </SC.Title>
             <SC.CurrencyChange>
               <InputLabel id="demo-simple-select-label">
-                Currency you want to change to
+                Select Currency
               </InputLabel>
               <SC.SelectComp
                 labelId="demo-simple-select-label"
@@ -261,11 +254,15 @@ const Market = () => {
                   updateUrlGallery("currency", value);
                 }}
               >
-                {listCurrencyChange?.length > 0 &&
-                  listCurrencyChange.map((values) => {
+                {listCurrentcy?.length > 0 &&
+                  listCurrentcy.map((values, index) => {
                     return (
-                      <MenuItem value={values.value} key={values.id}>
-                        {values.key}
+                      <MenuItem
+                        disabled={coinFrom === values}
+                        value={values}
+                        key={index}
+                      >
+                        {values.toUpperCase()}
                       </MenuItem>
                     );
                   })}
@@ -276,14 +273,18 @@ const Market = () => {
         {displayType === "chart" ? (
           <Grid ref={gridItemRef} item xs={12} md={10} lg={8}>
             <SC.MarketHeader>
-              <SC.Title>{`${
-                queryParams?.name
-              }/${currencyChange.toUpperCase()}`}</SC.Title>
+              <SC.Title>{`${coinFrom.toUpperCase()} to ${currencyChange.toUpperCase()} Price Chart`}</SC.Title>
               <TimeFilterButtons
                 value={timeFilter}
                 onChange={(v) => {
-                  setTimeFilter(v || "");
-                  updateUrlGallery("time", v || "");
+                  const index = Object.values(TimePeriod).findIndex(
+                    (values) => values === v
+                  );
+                  if (index > -1) {
+                    const listKeys = Object.keys(TimePeriod);
+                    setTimeFilter(listKeys[index] || "");
+                    updateUrlGallery("range", listKeys[index] || "");
+                  }
                 }}
               />
             </SC.MarketHeader>
@@ -328,14 +329,18 @@ const Market = () => {
         ) : (
           <SC.GridComp ref={gridItemRef} item xs={12} md={10} lg={8}>
             <SC.MarketHeader>
-              <SC.Title>{`${
-                queryParams?.name
-              }/${currencyChange.toUpperCase()}`}</SC.Title>
+              <SC.Title>{`${coinFrom.toUpperCase()} to ${currencyChange.toUpperCase()} Price Chart`}</SC.Title>
               <TimeFilterButtons
                 value={timeFilter}
                 onChange={(v) => {
-                  setTimeFilter(v || "");
-                  updateUrlGallery("time", v || "");
+                  const index = Object.values(TimePeriod).findIndex(
+                    (values) => values === v
+                  );
+                  if (index > -1) {
+                    const listKeys = Object.keys(TimePeriod);
+                    setTimeFilter(listKeys[index] || "");
+                    updateUrlGallery("range", listKeys[index] || "");
+                  }
                 }}
               />
             </SC.MarketHeader>

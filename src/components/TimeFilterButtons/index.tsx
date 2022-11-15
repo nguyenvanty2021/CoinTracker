@@ -19,7 +19,7 @@ export const TimeFilterButtons: React.FC<{
   defaultValue?: string;
   onChange?: (value: string | undefined) => void;
 }> = ({ value, defaultValue, onChange }) => {
-  const [filter, setFilter] = useOptionalControlledState<string | undefined>({
+  const [filter, setFilter] = useOptionalControlledState<any>({
     controlledValue: value,
     initialValue: TimeFilters.P1D,
     onChange,
@@ -28,7 +28,7 @@ export const TimeFilterButtons: React.FC<{
   return (
     <ToggleButtonGroup
       size="small"
-      value={filter}
+      value={TimePeriod[filter]}
       exclusive
       onChange={(e, v) => {
         setFilter(v);
