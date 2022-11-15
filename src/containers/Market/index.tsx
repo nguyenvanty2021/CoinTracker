@@ -12,6 +12,8 @@ import { useQueryParams, StringParam } from "use-query-params";
 import { MarketContext } from "store/MarketProvider";
 import { MenuItem } from "@material-ui/core";
 import { InputLabel } from "@material-ui/core";
+import unlike from "assets/img/unlike.png";
+import like from "assets/img/like.png";
 import Table from "@material-ui/core/Table";
 import { makeStyles } from "@material-ui/core/styles";
 import { format } from "date-fns";
@@ -102,6 +104,12 @@ const Market = () => {
   const [isErrorMessage, setIsErrorMessage] = React.useState<string>("");
   const [boxWidth, setBoxWidth] = React.useState<number>(0);
   const { height } = useWindowDimensions();
+  const [statusHeart, setStatusHeart] = React.useState<string>("false");
+  const local: any = localStorage?.getItem("listWatched");
+  const listWatched: {
+    id: string;
+    watched: boolean;
+  }[] = local && JSON.parse(local);
   const [{ data, loading, error }, fetch] = useAxios(
     {
       url: `https://api.coingecko.com/api/v3/coins/${queryParams?.id}/market_chart?vs_currency=${currencyChange}&days=${timeFilter}`,
@@ -170,6 +178,29 @@ const Market = () => {
     setRows([...listTemp]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredData]);
+  useEffect(() => {
+    if (listWatched?.length > 0) {
+      const founded = listWatched.every((el) => el.id !== queryParam["id"]);
+      if (founded) {
+        listWatched.push({
+          id: queryParam["id"],
+          watched: queryParam["watched"],
+        });
+        localStorage.setItem("listWatched", JSON.stringify(listWatched));
+      }
+    } else {
+      localStorage.setItem(
+        "listWatched",
+        JSON.stringify([
+          {
+            id: queryParam["id"],
+            watched: queryParam["watched"],
+          },
+        ])
+      );
+    }
+    setStatusHeart(queryParam["watched"]);
+  }, []);
   return (
     <>
       <Grid container justify="center">
@@ -237,6 +268,28 @@ const Market = () => {
                 }}
               />
             </SC.MarketHeader>
+            <SC.ImageComp
+              onClick={() => {
+                updateUrlGallery(
+                  "watched",
+                  statusHeart === "true" ? "false" : "true"
+                );
+                setStatusHeart(statusHeart === "true" ? "false" : "true");
+                const index = listWatched.findIndex(
+                  (el) => el.id === queryParam["id"]
+                );
+                if (index > -1) {
+                  listWatched[index].watched =
+                    statusHeart === "true" ? false : true;
+                  localStorage.setItem(
+                    "listWatched",
+                    JSON.stringify(listWatched)
+                  );
+                }
+              }}
+              src={statusHeart === "true" ? like : unlike}
+              alt="Unlike"
+            />
             {loading ? (
               <Skeleton
                 variant="rect"

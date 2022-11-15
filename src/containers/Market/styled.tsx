@@ -6,7 +6,14 @@ const MarketHeader = styled.div`
   align-items: center;
   height: 4rem;
 `;
-
+const ImageComp = styled.img`
+  width: 25px;
+  float: right;
+  height: 25px;
+  position: relative;
+  z-index: 10000;
+  object-fit: contain;
+`;
 const Title = styled.h2`
   color: ${(p) => p.theme.colors.primary};
 `;
@@ -22,6 +29,7 @@ const SelectComp = styled(Select)`
 `;
 export const SC = {
   MarketHeader,
+  ImageComp,
   CurrencyChange,
   GridComp,
   Title,

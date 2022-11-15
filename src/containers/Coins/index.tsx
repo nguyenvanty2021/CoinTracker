@@ -10,6 +10,7 @@ import { CoinDataProps } from "./interfaces";
 import { SC } from "./styled";
 import { Pagination, Skeleton } from "@material-ui/lab";
 import { useQueryParams, NumberParam } from "use-query-params";
+import { getQueryParam } from "utils/query";
 
 const CHART_BOX_SIZE = {
   height: 40,
@@ -25,6 +26,12 @@ const MAX_PAGE_COUNT = 250;
 
 const Coins = () => {
   const history = useHistory();
+  const queryParam = getQueryParam<any>();
+  const local: any = localStorage?.getItem("listWatched");
+  const listWatched: {
+    id: string;
+    watched: boolean;
+  }[] = local && JSON.parse(local);
   const [queryParams, setQueryParams] = useQueryParams({
     per_page: NumberParam,
     page: NumberParam,
@@ -82,9 +89,16 @@ const Coins = () => {
                     </div>
                     <SC.CoinsName
                       onClick={() => {
+                        const index = listWatched.findIndex(
+                          (el) => el.id === ele.id
+                        );
                         history.push({
                           pathname: `/market`,
-                          search: `?currency=usd&displayType=chart&id=${ele.id}&name=${ele.name}&time=1`,
+                          search: `?currency=usd&displayType=chart&id=${
+                            ele.id
+                          }&name=${ele.name}&time=1&watched=${
+                            index > -1 ? listWatched[index].watched : "false"
+                          }`,
                         });
                       }}
                     >
