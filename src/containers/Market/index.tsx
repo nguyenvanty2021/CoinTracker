@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Grid, Snackbar, SnackbarCloseReason } from "@material-ui/core";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Grid, Snackbar } from "@material-ui/core";
 import { Skeleton, Alert } from "@material-ui/lab";
 import useAxios from "axios-hooks";
 import PrimaryChart from "components/PrimaryChart";
@@ -29,6 +29,36 @@ interface ListProps<T> {
   key: T;
   value: T;
 }
+interface ListWatchedProps {
+  id: string;
+  watched: boolean;
+}
+const HeartComponent = ({
+  statusHeart,
+  listWatched,
+  setStatusHeart,
+}: {
+  statusHeart: string;
+  listWatched: ListWatchedProps[];
+  setStatusHeart: React.Dispatch<React.SetStateAction<string>>;
+}) => {
+  const queryParam = getQueryParam<any>();
+  return (
+    <SC.ImageComp
+      onClick={() => {
+        updateUrlGallery("watched", statusHeart === "true" ? "false" : "true");
+        setStatusHeart(statusHeart === "true" ? "false" : "true");
+        const index = listWatched.findIndex((el) => el.id === queryParam["id"]);
+        if (index > -1) {
+          listWatched[index].watched = statusHeart === "true" ? false : true;
+          localStorage.setItem("listWatched", JSON.stringify(listWatched));
+        }
+      }}
+      src={statusHeart === "true" ? like : unlike}
+      alt="Unlike"
+    />
+  );
+};
 const useStyles = makeStyles({
   table: {
     minWidth: 650,
@@ -80,31 +110,29 @@ const Market = () => {
   const classes = useStyles();
   const {
     filteredDataState: { filteredData },
-  } = React.useContext(MarketContext);
+  } = useContext(MarketContext);
   const [queryParams] = useQueryParams({
     id: StringParam,
     name: StringParam,
   });
-  const [rows, setRows] = React.useState<
+  const [rows, setRows] = useState<
     {
       date: string;
       price: number;
     }[]
   >([]);
   const queryParam = getQueryParam<any>();
-  const [displayType, setDisplayType] = React.useState<string>(
+  const [displayType, setDisplayType] = useState<string>(
     queryParam["displayType"]
   );
-  const [currencyChange, setCurrencyChange] = React.useState<string>(
+  const [currencyChange, setCurrencyChange] = useState<string>(
     queryParam["currency"]
   );
-  const [timeFilter, setTimeFilter] = React.useState<string>(
-    queryParam["time"]
-  );
-  const [isErrorMessage, setIsErrorMessage] = React.useState<string>("");
-  const [boxWidth, setBoxWidth] = React.useState<number>(0);
+  const [timeFilter, setTimeFilter] = useState<string>(queryParam["time"]);
+  const [isErrorMessage, setIsErrorMessage] = useState<string>("");
+  const [boxWidth, setBoxWidth] = useState<number>(0);
   const { height } = useWindowDimensions();
-  const [statusHeart, setStatusHeart] = React.useState<string>("false");
+  const [statusHeart, setStatusHeart] = useState<string>("false");
   const local: any = localStorage?.getItem("listWatched");
   const listWatched: {
     id: string;
@@ -117,37 +145,8 @@ const Market = () => {
     },
     { manual: true }
   );
-  const gridItemRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (queryParams.id && queryParams.name) {
-      fetch();
-    }
-  }, [fetch, queryParams, queryParams.id, queryParams.name]);
-
-  React.useEffect(() => {
-    if (error) {
-      setIsErrorMessage(error.message);
-    }
-  }, [error]);
-
-  React.useEffect(() => {
-    const handleResize = (width?: number) => {
-      setBoxWidth(width || 0);
-    };
-
-    handleResize(gridItemRef.current?.clientWidth || 0);
-
-    window.addEventListener("resize", () =>
-      handleResize(gridItemRef?.current?.clientWidth || 0)
-    );
-
-    return () => {
-      window.removeEventListener("resize", () => handleResize());
-    };
-  }, [gridItemRef]);
-
-  const mappedData: DataProps[] = React.useMemo(() => {
+  const gridItemRef = useRef<HTMLDivElement>(null);
+  const mappedData: DataProps[] = useMemo(() => {
     return data
       ? data?.prices.map((ele: any) => ({
           date: new Date(ele[0]),
@@ -155,19 +154,36 @@ const Market = () => {
         }))
       : [];
   }, [data]);
-  const mappedDataList: DataProps[] = React.useMemo(() => {
+  const mappedDataList: DataProps[] = useMemo(() => {
     return data
       ? data?.prices.map((ele: any) =>
           createData(format(new Date(new Date(ele[0])), "dd/MM/yyyy"), ele[1])
         )
       : [];
   }, [data]);
-  const handleError = (
-    e: React.SyntheticEvent<any>,
-    reason?: SnackbarCloseReason
-  ) => {
-    setIsErrorMessage("");
-  };
+  const handleError = () => setIsErrorMessage("");
+  useEffect(() => {
+    if (queryParams.id && queryParams.name) {
+      fetch();
+    }
+  }, [fetch, queryParams, queryParams.id, queryParams.name]);
+  useEffect(() => {
+    if (error) {
+      setIsErrorMessage(error.message);
+    }
+  }, [error]);
+  useEffect(() => {
+    const handleResize = (width?: number) => {
+      setBoxWidth(width || 0);
+    };
+    handleResize(gridItemRef.current?.clientWidth || 0);
+    window.addEventListener("resize", () =>
+      handleResize(gridItemRef?.current?.clientWidth || 0)
+    );
+    return () => {
+      window.removeEventListener("resize", () => handleResize());
+    };
+  }, [gridItemRef]);
   useEffect(() => {
     const listTemp = [...rows];
     filteredData.forEach((values) => {
@@ -200,6 +216,7 @@ const Market = () => {
       );
     }
     setStatusHeart(queryParam["watched"]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <>
@@ -215,8 +232,9 @@ const Market = () => {
                 id="demo-simple-select-outlined"
                 value={displayType}
                 onChange={(e: any) => {
-                  setDisplayType(e.target.value);
-                  updateUrlGallery("displayType", e.target.value);
+                  const { value } = e.target;
+                  setDisplayType(value);
+                  updateUrlGallery("displayType", value);
                 }}
               >
                 {listDisplayType?.length > 0 &&
@@ -238,8 +256,9 @@ const Market = () => {
                 id="demo-simple-select-outlined"
                 value={currencyChange}
                 onChange={(e: any) => {
-                  setCurrencyChange(e.target.value);
-                  updateUrlGallery("currency", e.target.value);
+                  const { value } = e.target;
+                  setCurrencyChange(value);
+                  updateUrlGallery("currency", value);
                 }}
               >
                 {listCurrencyChange?.length > 0 &&
@@ -268,27 +287,10 @@ const Market = () => {
                 }}
               />
             </SC.MarketHeader>
-            <SC.ImageComp
-              onClick={() => {
-                updateUrlGallery(
-                  "watched",
-                  statusHeart === "true" ? "false" : "true"
-                );
-                setStatusHeart(statusHeart === "true" ? "false" : "true");
-                const index = listWatched.findIndex(
-                  (el) => el.id === queryParam["id"]
-                );
-                if (index > -1) {
-                  listWatched[index].watched =
-                    statusHeart === "true" ? false : true;
-                  localStorage.setItem(
-                    "listWatched",
-                    JSON.stringify(listWatched)
-                  );
-                }
-              }}
-              src={statusHeart === "true" ? like : unlike}
-              alt="Unlike"
+            <HeartComponent
+              setStatusHeart={setStatusHeart}
+              statusHeart={statusHeart}
+              listWatched={listWatched}
             />
             {loading ? (
               <Skeleton
@@ -337,7 +339,15 @@ const Market = () => {
                 }}
               />
             </SC.MarketHeader>
-            <TableContainer style={{ height: "70vh" }} component={Paper}>
+            <HeartComponent
+              setStatusHeart={setStatusHeart}
+              statusHeart={statusHeart}
+              listWatched={listWatched}
+            />
+            <TableContainer
+              style={{ height: "70vh", marginTop: "2.5rem" }}
+              component={Paper}
+            >
               <Table className={classes.table} aria-label="simple table">
                 <TableHead>
                   <TableRow>

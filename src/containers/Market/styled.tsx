@@ -9,6 +9,7 @@ const MarketHeader = styled.div`
 const ImageComp = styled.img`
   width: 25px;
   float: right;
+  cursor: pointer;
   height: 25px;
   position: relative;
   z-index: 10000;

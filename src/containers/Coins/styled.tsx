@@ -43,7 +43,7 @@ const CoinsContainer = styled.div`
   overflow-y: auto;
 `;
 
-const CoinsName = styled.b`
+const CoinsName = styled.a`
   color: blue;
   &:hover {
     cursor: pointer;

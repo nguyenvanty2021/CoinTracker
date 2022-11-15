@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { Grid } from "@material-ui/core";
 import { useHistory } from "react-router-dom";
 import useAxios from "axios-hooks";
@@ -10,7 +10,6 @@ import { CoinDataProps } from "./interfaces";
 import { SC } from "./styled";
 import { Pagination, Skeleton } from "@material-ui/lab";
 import { useQueryParams, NumberParam } from "use-query-params";
-import { getQueryParam } from "utils/query";
 
 const CHART_BOX_SIZE = {
   height: 40,
@@ -26,7 +25,6 @@ const MAX_PAGE_COUNT = 250;
 
 const Coins = () => {
   const history = useHistory();
-  const queryParam = getQueryParam<any>();
   const local: any = localStorage?.getItem("listWatched");
   const listWatched: {
     id: string;
@@ -36,23 +34,19 @@ const Coins = () => {
     per_page: NumberParam,
     page: NumberParam,
   });
-
   const [{ data, loading }, refecth] = useAxios<CoinDataProps[]>(
     `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&per_page=${
       queryParams?.per_page || INITIAL_QUERY_PARAMS.per_page
     }&page=${
       queryParams?.page || INITIAL_QUERY_PARAMS.page
-    }&sparkline=false&price_change_percentage=1h%2C24h%2C7d
-`
+    }&sparkline=false&price_change_percentage=1h%2C24h%2C7d`
   );
-
-  React.useEffect(() => {
+  useEffect(() => {
     setQueryParams({
       per_page: queryParams?.per_page || INITIAL_QUERY_PARAMS.per_page,
       page: queryParams?.page || INITIAL_QUERY_PARAMS.page,
     });
   }, [queryParams?.page, queryParams?.per_page, setQueryParams]);
-
   const TableHeader = () => {
     return (
       <thead>
@@ -69,7 +63,6 @@ const Coins = () => {
       </thead>
     );
   };
-
   const TableBody = () => {
     return (
       <tbody>
