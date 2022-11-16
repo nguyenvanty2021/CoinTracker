@@ -42,7 +42,10 @@ const CoinsContainer = styled.div`
   overflow: hidden;
   overflow-y: auto;
 `;
-
+const WatchedButton = styled.div`
+  float: right;
+  margin-bottom: 12px;
+`;
 const CoinsName = styled.a`
   color: blue;
   &:hover {
@@ -50,7 +53,9 @@ const CoinsName = styled.a`
     text-decoration: underline;
   }
 `;
-
+const Container = styled.div`
+  width: 100%;
+`;
 const PaginationWrapper = styled.div`
   margin: 1rem 0;
   display: flex;
@@ -60,6 +65,8 @@ const PaginationWrapper = styled.div`
 
 export const SC = {
   CoinsContainer,
+  WatchedButton,
+  Container,
   GridComp,
   CoinsName,
   PaginationWrapper,

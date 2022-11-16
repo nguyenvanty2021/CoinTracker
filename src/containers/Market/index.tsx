@@ -26,7 +26,9 @@ import Paper from "@material-ui/core/Paper";
 import { getQueryParam, updateUrlGallery } from "utils/query";
 import coinApi from "api/coinApi";
 import { Status } from "enums/TimeFilters";
-import { useHistory } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
+import numeral from "numeral";
+import { CoinDataProps } from "containers/Coins/interfaces";
 interface ListProps<T> {
   id: number;
   key: T;
@@ -35,6 +37,7 @@ interface ListProps<T> {
 interface FilterProps<T> {
   displayType: T;
   currencyChange: T;
+  priceTo: T;
 }
 interface ListWatchedProps {
   id: string;
@@ -110,6 +113,7 @@ const Market = () => {
   >({
     displayType: queryParam["displayType"],
     currencyChange: queryParam["currency"],
+    priceTo: queryParam["priceCurrency"],
   });
   const [timeFilter, setTimeFilter] = useState<string>(queryParam["range"]);
   const [isErrorMessage, setIsErrorMessage] = useState<string>("");
@@ -121,12 +125,17 @@ const Market = () => {
   >({
     displayType: queryParam["displayType"],
     currencyChange: queryParam["currency"],
+    priceTo: queryParam["priceCurrency"],
   });
   const [statusHeart, setStatusHeart] = useState<string>("false");
+  const [listMarkets, setListMarkets] = useState<CoinDataProps[]>([]);
   const local: any = localStorage?.getItem("listWatched");
   const listWatched: {
     id: string;
     watched: boolean;
+    price: string;
+    coin: string;
+    priceTo: string;
   }[] = local && JSON.parse(local);
   const [{ data, loading, error }, fetch] = useAxios(
     {
@@ -154,9 +163,16 @@ const Market = () => {
   const handleError = () => setIsErrorMessage("");
   const handleGetAllCurrency = async () => {
     try {
-      const res = await coinApi.getAllMoney();
-      if (res.status === Status.SUCCESS) {
-        setListCurrency(res?.data);
+      const [listCurrencyData, listMarketData] = await Promise.all([
+        coinApi.getAllMoney(),
+        coinApi.getAllMarkets(),
+      ]);
+      if (
+        listCurrencyData.status === Status.SUCCESS &&
+        listMarketData.status === Status.SUCCESS
+      ) {
+        setListCurrency(listCurrencyData?.data);
+        setListMarkets(listMarketData?.data);
       }
     } catch (error) {
       console.log(error);
@@ -201,6 +217,9 @@ const Market = () => {
         listWatched.push({
           id: queryParam["id"],
           watched: queryParam["watched"],
+          price: queryParam["price"],
+          coin: `${coinFrom.toUpperCase()} to ${filterCommonSubmit.currencyChange.toUpperCase()}`,
+          priceTo: filterCommonSaved.priceTo,
         });
         localStorage.setItem("listWatched", JSON.stringify(listWatched));
       }
@@ -211,13 +230,16 @@ const Market = () => {
           {
             id: queryParam["id"],
             watched: queryParam["watched"],
+            price: queryParam["price"],
+            coin: `${coinFrom.toUpperCase()} to ${filterCommonSubmit.currencyChange.toUpperCase()}`,
+            priceTo: filterCommonSaved.priceTo,
           },
         ])
       );
     }
     setStatusHeart(queryParam["watched"]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filterCommonSaved]);
   useEffect(() => {
     handleGetAllCurrency();
   }, []);
@@ -225,6 +247,7 @@ const Market = () => {
     <>
       <Grid container justify="center">
         <Grid ref={gridItemRef} item xs={12} md={10} lg={8}>
+          <Link to="/">Back to Coin List</Link>
           <SC.MarketHeader style={{ justifyContent: "flex-start" }}>
             <SC.FilterComp>
               <SC.Title>
@@ -260,12 +283,16 @@ const Market = () => {
                   labelId="demo-simple-select-label"
                   id="demo-simple-select-outlined"
                   value={filterCommonSaved.currencyChange}
-                  onChange={(e: any) =>
+                  onChange={(e: any) => {
+                    const obj = listMarkets.find(
+                      (values) => values.symbol === queryParam["currency"]
+                    );
                     setFilterCommonSaved({
                       ...filterCommonSaved,
+                      priceTo: numeral(obj?.current_price).format("0,0.00"),
                       currencyChange: e.target.value,
-                    })
-                  }
+                    });
+                  }}
                 >
                   {listCurrentcy?.length > 0 &&
                     listCurrentcy.map((values, index) => {
@@ -284,14 +311,30 @@ const Market = () => {
             </SC.FilterComp>
             <Button
               onClick={() => {
-                const { currencyChange, displayType } = filterCommonSaved;
+                const { currencyChange, displayType, priceTo } =
+                  filterCommonSaved;
                 setFilterCommonSubmit({
                   ...filterCommonSubmit,
                   currencyChange,
                   displayType,
+                  priceTo,
                 });
                 updateUrlGallery("currency", currencyChange);
                 updateUrlGallery("displayType", displayType);
+                updateUrlGallery("priceCurrency", priceTo);
+                const index = listWatched.findIndex(
+                  (values) => values.id === queryParam["id"]
+                );
+                if (index > -1) {
+                  listWatched[index].priceTo = priceTo;
+                  listWatched[
+                    index
+                  ].coin = `${coinFrom.toUpperCase()} to ${filterCommonSaved.currencyChange.toUpperCase()}`;
+                }
+                localStorage.setItem(
+                  "listWatched",
+                  JSON.stringify(listWatched)
+                );
               }}
               variant="contained"
             >
