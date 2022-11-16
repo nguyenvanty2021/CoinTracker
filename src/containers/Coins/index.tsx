@@ -276,18 +276,21 @@ const Coins = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {listWatched.map((row, index) => {
-                  const name = row.coin.split(" to ");
-                  return (
-                    <TableRow key={index}>
-                      <TableCell align="left">{row.coin}</TableCell>
-                      <TableCell align="left">
-                        <p>{`1 ${name[0]} = $${row.price}`}</p>
-                        <p>{`1 ${name[1]} = $${row.priceTo}`}</p>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {listWatched?.length > 0 &&
+                  listWatched.map((row, index) => {
+                    const name = row.coin.split(" to ");
+                    return (
+                      row?.watched === true && (
+                        <TableRow key={index}>
+                          <TableCell align="left">{row.coin}</TableCell>
+                          <TableCell align="left">
+                            <p>{`1 ${name[0]} = $${row.price}`}</p>
+                            <p>{`1 ${name[1]} = $${row.priceTo}`}</p>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    );
+                  })}
               </TableBody>
             </Table>
           </TableContainer>
