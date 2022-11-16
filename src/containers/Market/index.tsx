@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Grid, Snackbar } from "@material-ui/core";
+import { Button, Grid, Snackbar } from "@material-ui/core";
 import { Skeleton, Alert } from "@material-ui/lab";
 import useAxios from "axios-hooks";
 import PrimaryChart from "components/PrimaryChart";
@@ -31,6 +31,10 @@ interface ListProps<T> {
   id: number;
   key: T;
   value: T;
+}
+interface FilterProps<T> {
+  displayType: T;
+  currencyChange: T;
 }
 interface ListWatchedProps {
   id: string;
@@ -101,17 +105,23 @@ const Market = () => {
   const { pathname } = history.location;
   const coinFrom = pathname.split("/")[pathname.split("/").length - 1];
   const queryParam = getQueryParam<any>();
-  const [displayType, setDisplayType] = useState<string>(
-    queryParam["displayType"]
-  );
-  const [currencyChange, setCurrencyChange] = useState<string>(
-    queryParam["currency"]
-  );
+  const [filterCommonSubmit, setFilterCommonSubmit] = useState<
+    FilterProps<string>
+  >({
+    displayType: queryParam["displayType"],
+    currencyChange: queryParam["currency"],
+  });
   const [timeFilter, setTimeFilter] = useState<string>(queryParam["range"]);
   const [isErrorMessage, setIsErrorMessage] = useState<string>("");
   const [boxWidth, setBoxWidth] = useState<number>(0);
   const [listCurrentcy, setListCurrency] = useState<string[]>([]);
   const { height } = useWindowDimensions();
+  const [filterCommonSaved, setFilterCommonSaved] = useState<
+    FilterProps<string>
+  >({
+    displayType: queryParam["displayType"],
+    currencyChange: queryParam["currency"],
+  });
   const [statusHeart, setStatusHeart] = useState<string>("false");
   const local: any = localStorage?.getItem("listWatched");
   const listWatched: {
@@ -120,7 +130,7 @@ const Market = () => {
   }[] = local && JSON.parse(local);
   const [{ data, loading, error }, fetch] = useAxios(
     {
-      url: `https://api.coingecko.com/api/v3/coins/${queryParams?.id}/market_chart?vs_currency=${currencyChange}&days=${TimePeriod[timeFilter]}`,
+      url: `https://api.coingecko.com/api/v3/coins/${queryParams?.id}/market_chart?vs_currency=${filterCommonSubmit.currencyChange}&days=${TimePeriod[timeFilter]}`,
       method: "GET",
     },
     { manual: true }
@@ -215,65 +225,84 @@ const Market = () => {
     <>
       <Grid container justify="center">
         <Grid ref={gridItemRef} item xs={12} md={10} lg={8}>
-          <SC.MarketHeader>
-            <SC.Title>
-              <InputLabel id="demo-simple-select-label">
-                Select display type
-              </InputLabel>
-              <SC.SelectComp
-                labelId="demo-simple-select-label"
-                id="demo-simple-select-outlined"
-                value={displayType}
-                onChange={(e: any) => {
-                  const { value } = e.target;
-                  setDisplayType(value);
-                  updateUrlGallery("displayType", value);
-                }}
-              >
-                {listDisplayType?.length > 0 &&
-                  listDisplayType.map((values) => {
-                    return (
-                      <MenuItem value={values.value} key={values.id}>
-                        {values.key}
-                      </MenuItem>
-                    );
-                  })}
-              </SC.SelectComp>
-            </SC.Title>
-            <SC.CurrencyChange>
-              <InputLabel id="demo-simple-select-label">
-                Select Currency
-              </InputLabel>
-              <SC.SelectComp
-                labelId="demo-simple-select-label"
-                id="demo-simple-select-outlined"
-                value={currencyChange}
-                onChange={(e: any) => {
-                  const { value } = e.target;
-                  setCurrencyChange(value);
-                  updateUrlGallery("currency", value);
-                }}
-              >
-                {listCurrentcy?.length > 0 &&
-                  listCurrentcy.map((values, index) => {
-                    return (
-                      <MenuItem
-                        disabled={coinFrom === values}
-                        value={values}
-                        key={index}
-                      >
-                        {values.toUpperCase()}
-                      </MenuItem>
-                    );
-                  })}
-              </SC.SelectComp>
-            </SC.CurrencyChange>
+          <SC.MarketHeader style={{ justifyContent: "flex-start" }}>
+            <SC.FilterComp>
+              <SC.Title>
+                <InputLabel id="demo-simple-select-label">
+                  Select display type
+                </InputLabel>
+                <SC.SelectComp
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select-outlined"
+                  value={filterCommonSaved.displayType}
+                  onChange={(e: any) =>
+                    setFilterCommonSaved({
+                      ...filterCommonSaved,
+                      displayType: e.target.value,
+                    })
+                  }
+                >
+                  {listDisplayType?.length > 0 &&
+                    listDisplayType.map((values) => {
+                      return (
+                        <MenuItem value={values.value} key={values.id}>
+                          {values.key}
+                        </MenuItem>
+                      );
+                    })}
+                </SC.SelectComp>
+              </SC.Title>
+              <SC.CurrencyChange>
+                <InputLabel id="demo-simple-select-label">
+                  Select Currency
+                </InputLabel>
+                <SC.SelectComp
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select-outlined"
+                  value={filterCommonSaved.currencyChange}
+                  onChange={(e: any) =>
+                    setFilterCommonSaved({
+                      ...filterCommonSaved,
+                      currencyChange: e.target.value,
+                    })
+                  }
+                >
+                  {listCurrentcy?.length > 0 &&
+                    listCurrentcy.map((values, index) => {
+                      return (
+                        <MenuItem
+                          disabled={coinFrom === values}
+                          value={values}
+                          key={index}
+                        >
+                          {values.toUpperCase()}
+                        </MenuItem>
+                      );
+                    })}
+                </SC.SelectComp>
+              </SC.CurrencyChange>
+            </SC.FilterComp>
+            <Button
+              onClick={() => {
+                const { currencyChange, displayType } = filterCommonSaved;
+                setFilterCommonSubmit({
+                  ...filterCommonSubmit,
+                  currencyChange,
+                  displayType,
+                });
+                updateUrlGallery("currency", currencyChange);
+                updateUrlGallery("displayType", displayType);
+              }}
+              variant="contained"
+            >
+              Apply
+            </Button>
           </SC.MarketHeader>
         </Grid>
-        {displayType === "chart" ? (
+        {filterCommonSubmit.displayType === "chart" ? (
           <Grid ref={gridItemRef} item xs={12} md={10} lg={8}>
             <SC.MarketHeader>
-              <SC.Title>{`${coinFrom.toUpperCase()} to ${currencyChange.toUpperCase()} Price Chart`}</SC.Title>
+              <SC.Title>{`${coinFrom.toUpperCase()} to ${filterCommonSubmit.currencyChange.toUpperCase()} Price Chart`}</SC.Title>
               <TimeFilterButtons
                 value={timeFilter}
                 onChange={(v) => {
@@ -330,7 +359,7 @@ const Market = () => {
         ) : (
           <SC.GridComp ref={gridItemRef} item xs={12} md={10} lg={8}>
             <SC.MarketHeader>
-              <SC.Title>{`${coinFrom.toUpperCase()} to ${currencyChange.toUpperCase()} Price Chart`}</SC.Title>
+              <SC.Title>{`${coinFrom.toUpperCase()} to ${filterCommonSubmit.currencyChange.toUpperCase()} Price Chart`}</SC.Title>
               <TimeFilterButtons
                 value={timeFilter}
                 onChange={(v) => {

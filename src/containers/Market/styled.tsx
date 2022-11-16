@@ -4,6 +4,7 @@ const MarketHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   height: 4rem;
 `;
 const BorderChart = styled.div`
@@ -22,6 +23,7 @@ const ImageComp = styled.img`
   object-fit: contain;
 `;
 const Title = styled.h2`
+  margin-right: 20px;
   color: ${(p) => p.theme.colors.primary};
 `;
 const GridComp = styled(Grid)`
@@ -30,13 +32,22 @@ const GridComp = styled(Grid)`
 const CurrencyChange = styled.div`
   display: flex;
   flex-direction: column;
+  margin-right: 20px;
 `;
 const SelectComp = styled(Select)`
   width: 10rem;
 `;
+const FilterComp = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-right: 20px;
+`;
 export const SC = {
   MarketHeader,
   ImageComp,
+  FilterComp,
   CurrencyChange,
   BorderChart,
   GridComp,
