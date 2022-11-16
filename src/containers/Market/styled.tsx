@@ -6,13 +6,19 @@ const MarketHeader = styled.div`
   align-items: center;
   height: 4rem;
 `;
+const BorderChart = styled.div`
+  position: relative;
+`;
 const ImageComp = styled.img`
   width: 25px;
   float: right;
   cursor: pointer;
   height: 25px;
-  position: relative;
+  position: absolute;
   z-index: 1000;
+  top: 0;
+  right: 0;
+  margin: 15px 15px 0 0;
   object-fit: contain;
 `;
 const Title = styled.h2`
@@ -32,6 +38,7 @@ export const SC = {
   MarketHeader,
   ImageComp,
   CurrencyChange,
+  BorderChart,
   GridComp,
   Title,
   SelectComp,

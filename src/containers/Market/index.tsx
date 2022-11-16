@@ -288,11 +288,7 @@ const Market = () => {
                 }}
               />
             </SC.MarketHeader>
-            <HeartComponent
-              setStatusHeart={setStatusHeart}
-              statusHeart={statusHeart}
-              listWatched={listWatched}
-            />
+
             {loading ? (
               <Skeleton
                 variant="rect"
@@ -300,7 +296,12 @@ const Market = () => {
                 width={boxWidth}
               />
             ) : mappedData?.length ? (
-              <>
+              <SC.BorderChart>
+                <HeartComponent
+                  setStatusHeart={setStatusHeart}
+                  statusHeart={statusHeart}
+                  listWatched={listWatched}
+                />
                 <PrimaryChart
                   data={filteredData ?? []}
                   height={Math.floor(height * 0.4)}
@@ -323,7 +324,7 @@ const Market = () => {
                     left: 48,
                   }}
                 />
-              </>
+              </SC.BorderChart>
             ) : null}
           </Grid>
         ) : (
@@ -344,39 +345,38 @@ const Market = () => {
                 }}
               />
             </SC.MarketHeader>
-            <HeartComponent
-              setStatusHeart={setStatusHeart}
-              statusHeart={statusHeart}
-              listWatched={listWatched}
-            />
-            <TableContainer
-              style={{ height: "70vh", marginTop: "2.5rem" }}
-              component={Paper}
-            >
-              <Table className={classes.table} aria-label="simple table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="left">Date</TableCell>
-                    <TableCell align="left">Price</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {mappedDataList?.length > 0
-                    ? mappedDataList.map((row) => (
-                        <TableRow key={row.date}>
-                          <TableCell align="left">{row.date}</TableCell>
-                          <TableCell align="left">{row.price}</TableCell>
-                        </TableRow>
-                      ))
-                    : rows.map((row) => (
-                        <TableRow key={row.date}>
-                          <TableCell align="left">{row.date}</TableCell>
-                          <TableCell align="left">{row.price}</TableCell>
-                        </TableRow>
-                      ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <SC.BorderChart>
+              <HeartComponent
+                setStatusHeart={setStatusHeart}
+                statusHeart={statusHeart}
+                listWatched={listWatched}
+              />
+              <TableContainer style={{ height: "70vh" }} component={Paper}>
+                <Table className={classes.table} aria-label="simple table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell align="left">Date</TableCell>
+                      <TableCell align="left">Price</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {mappedDataList?.length > 0
+                      ? mappedDataList.map((row) => (
+                          <TableRow key={row.date}>
+                            <TableCell align="left">{row.date}</TableCell>
+                            <TableCell align="left">{row.price}</TableCell>
+                          </TableRow>
+                        ))
+                      : rows.map((row) => (
+                          <TableRow key={row.date}>
+                            <TableCell align="left">{row.date}</TableCell>
+                            <TableCell align="left">{row.price}</TableCell>
+                          </TableRow>
+                        ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </SC.BorderChart>
           </SC.GridComp>
         )}
 
