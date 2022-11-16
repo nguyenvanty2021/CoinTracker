@@ -120,7 +120,6 @@ const Coins = () => {
       <tbody>
         {data?.length
           ? data.map((ele) => {
-              console.log(ele);
               return (
                 <SC.TableBodyRow key={ele.id}>
                   <SC.TableData>{ele.market_cap_rank}</SC.TableData>
@@ -216,7 +215,6 @@ const Coins = () => {
   const handleChangeIndex = (index: number) => {
     setValue(index);
   };
-  console.log(listWatched);
   return (
     <SC.Container>
       <AppBar position="static" color="default">
